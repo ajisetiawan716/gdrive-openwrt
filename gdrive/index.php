@@ -96,10 +96,12 @@ function changeFileName($downloadUrl, $newFileName) {
 
 
 // Memulai unduhan jika URL Google Drive tersedia
+
 // Function to check if the URL is a valid Google Drive URL
 function isValidGoogleDriveUrl($url) {
-    return preg_match('/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)|docs\.google\.com\/uc\?id=([a-zA-Z0-9_-]+)/', $url);
+    return preg_match('/^(https?:\/\/)?(www\.)?(drive\.google\.com\/(file\/d\/|uc\?id=)|docs\.google\.com\/uc\?id=)([a-zA-Z0-9_-]+)/', $url);
 }
+
 
 // Memulai unduhan jika URL Google Drive tersedia
 if (!empty($googleDriveUrl)) {
