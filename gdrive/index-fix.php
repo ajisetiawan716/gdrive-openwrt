@@ -1,14 +1,9 @@
 <?php
+	require_once'config.php';
 
 // Mengambil parameter URL Google Drive dari permintaan POST
 $googleDriveUrl = isset($_POST['google_drive_url']) ? $_POST['google_drive_url'] : '';
 
-// Mengatur URL Aria2 RPC
-$aria2RpcUrl = 'http://localhost:6800/jsonrpc';
-
-// Mengatur username dan password Aria2 RPC
-$aria2Username = 'your_username';
-$aria2Password = 'your_password';
 
 // Variabel untuk menyimpan pesan error
 $errorMessage = '';
@@ -163,9 +158,6 @@ function downloadGoogleSheets($url) {
     // Mendapatkan file ID dari URL Google Sheets
     $fileId = getFileIdFromUrl($url);
 
-    // Ganti 'YOUR_API_KEY' dengan kunci API Google Sheets Anda
-    $Gsheet_apiKey = "AIzaSyBTPsOk2mOrD_5re3n4OmLFFRvflGvqgMY";
-
     // Menentukan URL untuk mengunduh file Google Sheets
     $downloadUrl = "https://sheets.googleapis.com/v4/spreadsheets/$fileId/values/A1:Z100?&key=$Gsheet_apiKey";
 
@@ -207,10 +199,7 @@ if (!empty($googleDriveUrl)) {
         // Mendapatkan file ID dari URL Google Drive
         $fileId = getFileIdFromUrl($googleDriveUrl);
 
-        // Ganti 'YOUR_API_KEY' dengan kunci API Google Drive Anda
-        $apiKey = "AIzaSyDd4FUuqOlOjQBxQVUfz4Gh4ia5FDXLsbI";
-
-        // Menghasilkan URL download menggunakan Google Drive API dengan fields=name
+       // Menghasilkan URL download menggunakan Google Drive API dengan fields=name
         $fileNameUrl = "https://www.googleapis.com/drive/v3/files/$fileId?fields=name&key=$apiKey";
 
         // Mendapatkan nama file dari URL dengan fields=name
