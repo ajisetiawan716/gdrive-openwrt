@@ -68,8 +68,13 @@ function getFileIdFromUrl($url) {
     }
 
     $path = explode('/', $parts['path']);
-    return $path[3];
+    if (isset($path[3])) {
+        return $path[3];
+    } else {
+        return null; // Atau sesuaikan dengan tindakan yang sesuai
+    }
 }
+
 
 // Fungsi untuk mendapatkan nama file dari URL dengan fields=name
 function getNameFromUrl($fileNameUrl) {
@@ -221,6 +226,7 @@ if (!empty($googleDriveUrl)) {
             $modifiedDownloadUrl = changeFileName($downloadUrl, $fileName);
 
             // Pengecekan respon status header setelah mengirim permintaan ke Google Drive API
+			$httpStatusCode = http_response_code();
             if (http_response_code() !== 200) {
                 $errorMessage = 'Error: Failed to fetch file information from Google Drive.';
             } else {
