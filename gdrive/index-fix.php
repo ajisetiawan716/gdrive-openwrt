@@ -58,7 +58,7 @@ function getDownloadStatus($gid) {
 // Fungsi untuk mendapatkan file ID dari URL Google Drive
 function getFileIdFromUrl($url) {
     $parts = parse_url($url);
-
+    
     if (isset($parts['query'])) {
         parse_str($parts['query'], $query);
 
@@ -68,15 +68,7 @@ function getFileIdFromUrl($url) {
     }
 
     $path = explode('/', $parts['path']);
-
-    // Memeriksa apakah URL adalah URL Google Sheets dengan format yang benar
-    if (count($path) >= 4 && $path[1] === 'spreadsheets' && $path[3] === 'edit') {
-        return $path[4];
-    } elseif (count($path) >= 6 && $path[1] === 'spreadsheets' && $path[3] === 'd') {
-        return $path[4];
-    }
-
-    return null;
+    return $path[3];
 }
 
 // Fungsi untuk mendapatkan nama file dari URL dengan fields=name
@@ -146,6 +138,17 @@ function isValidGoogleDriveUrl($url) {
     if (preg_match('/^(https?:\/\/)?docs\.google\.com\/spreadsheets\/d\/([a-zA-Z0-9_-]+)\/edit/', $url)) {
         return true;
     }
+	
+	// Check for the format https://drive.google.com/file/d/FILE_ID/view?usp=drivesdk
+	if (preg_match('/^https:\/\/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/', $url)) {
+		return true;
+	}
+	
+	// Check for the format https://drive.google.com/file/d/FILE_ID/view
+	if (preg_match('/^https:\/\/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)\/view/', $url)) {
+		return true;
+	}
+
 
     return false;
 }
@@ -296,7 +299,7 @@ if (!empty($googleDriveUrl)) {
     ?>
     <form method="post" action="">
     <h1>Google Drive Downloader</h1>
-        <input type="text" id="google_drive_url" name="google_drive_url" placeholder="Enter Google Drive URL" required><br><br>
+<textarea name="google_drive_url" placeholder="Enter Google Drive URL" rows="10" cols="50" required></textarea><br><br>
         <button type="submit" value="Download">Download</button>
     </form>
 </body>
