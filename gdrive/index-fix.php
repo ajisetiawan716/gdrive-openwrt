@@ -1,9 +1,8 @@
 <?php
-	require_once'config.php';
+require_once 'config.php';
 
 // Mengambil parameter URL Google Drive dari permintaan POST
 $googleDriveUrl = isset($_POST['google_drive_url']) ? $_POST['google_drive_url'] : '';
-
 
 // Variabel untuk menyimpan pesan error
 $errorMessage = '';
@@ -53,7 +52,7 @@ function getDownloadStatus($gid) {
 // Fungsi untuk mendapatkan file ID dari URL Google Drive
 function getFileIdFromUrl($url) {
     $parts = parse_url($url);
-    
+
     if (isset($parts['query'])) {
         parse_str($parts['query'], $query);
 
@@ -69,7 +68,6 @@ function getFileIdFromUrl($url) {
         return null; // Atau sesuaikan dengan tindakan yang sesuai
     }
 }
-
 
 // Fungsi untuk mendapatkan nama file dari URL dengan fields=name
 function getNameFromUrl($fileNameUrl) {
@@ -103,12 +101,12 @@ function isValidGoogleDriveUrl($url) {
     if (preg_match('/^(https?:\/\/)?(www\.)?(drive\.google\.com\/(file\/d\/|uc\?id=)|docs\.google\.com\/uc\?id=)([a-zA-Z0-9_-]+)/', $url)) {
         return true;
     }
-    
+
     // Check for the format with /u/0/
     if (preg_match('/^(https?:\/\/)drive\.google\.com\/u\/[0-9]+\/uc\?id=([a-zA-Z0-9_-]+)/', $url)) {
         return true;
     }
-    
+
     // Check for the format with export=download
     if (preg_match('/^(https?:\/\/)drive\.google\.com\/uc\?export=download&id=([a-zA-Z0-9_-]+)/', $url)) {
         return true;
@@ -138,17 +136,16 @@ function isValidGoogleDriveUrl($url) {
     if (preg_match('/^(https?:\/\/)?docs\.google\.com\/spreadsheets\/d\/([a-zA-Z0-9_-]+)\/edit/', $url)) {
         return true;
     }
-	
-	// Check for the format https://drive.google.com/file/d/FILE_ID/view?usp=drivesdk
-	if (preg_match('/^https:\/\/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/', $url)) {
-		return true;
-	}
-	
-	// Check for the format https://drive.google.com/file/d/FILE_ID/view
-	if (preg_match('/^https:\/\/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)\/view/', $url)) {
-		return true;
-	}
 
+    // Check for the format https://drive.google.com/file/d/FILE_ID/view?usp=drivesdk
+    if (preg_match('/^https:\/\/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/', $url)) {
+        return true;
+    }
+
+    // Check for the format https://drive.google.com/file/d/FILE_ID/view
+    if (preg_match('/^https:\/\/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)\/view/', $url)) {
+        return true;
+    }
 
     return false;
 }
@@ -199,7 +196,7 @@ if (!empty($googleDriveUrl)) {
         // Mendapatkan file ID dari URL Google Drive
         $fileId = getFileIdFromUrl($googleDriveUrl);
 
-       // Menghasilkan URL download menggunakan Google Drive API dengan fields=name
+        // Menghasilkan URL download menggunakan Google Drive API dengan fields=name
         $fileNameUrl = "https://www.googleapis.com/drive/v3/files/$fileId?fields=name&key=$apiKey";
 
         // Mendapatkan nama file dari URL dengan fields=name
@@ -215,7 +212,7 @@ if (!empty($googleDriveUrl)) {
             $modifiedDownloadUrl = changeFileName($downloadUrl, $fileName);
 
             // Pengecekan respon status header setelah mengirim permintaan ke Google Drive API
-			$httpStatusCode = http_response_code();
+            $httpStatusCode = http_response_code();
             if (http_response_code() !== 200) {
                 $errorMessage = 'Error: Failed to fetch file information from Google Drive.';
             } else {
@@ -239,11 +236,11 @@ if (!empty($googleDriveUrl)) {
         }
     }
 }
-
 ?>
 
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
@@ -285,17 +282,18 @@ if (!empty($googleDriveUrl)) {
         }
     </style>
 </head>
-<body>
 
-	<?php
+<body>
+    <?php
     if (!empty($errorMessage)) {
         echo '<p class="error-message">' . $errorMessage . '</p>';
     }
     ?>
     <form method="post" action="">
-    <h1>Google Drive Downloader</h1>
-<textarea name="google_drive_url" placeholder="Enter Google Drive URL" rows="10" cols="50" required></textarea><br><br>
+        <h1>Google Drive Downloader</h1>
+        <textarea name="google_drive_url" placeholder="Enter Google Drive URL" rows="10" cols="50" required></textarea><br><br>
         <button type="submit" value="Download">Download</button>
     </form>
 </body>
+
 </html>
