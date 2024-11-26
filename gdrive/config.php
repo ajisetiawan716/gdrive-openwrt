@@ -1,9 +1,9 @@
 <?php
 	// Ganti 'YOUR_API_KEY' dengan kunci API Google Drive Anda
-	$apiKey = "YOUR_API_KEY";
+	$apiKey = "AIzaSyDd4FUuqOlOjQBxQVUfz4Gh4ia5FDXLsbI";
 
     // Ganti 'YOUR_API_KEY' dengan kunci API Google Sheets Anda
-    $Gsheet_apiKey = "YOUR_API_KEY";
+    $Gsheet_apiKey = "AIzaSyBTPsOk2mOrD_5re3n4OmLFFRvflGvqgMY";
 	
 	// Mengatur URL Aria2 RPC
 	$aria2RpcUrl = 'http://localhost:6800/jsonrpc';
