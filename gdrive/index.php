@@ -3,32 +3,59 @@ require_once 'config.php';
 
 // Mengambil parameter URL Google Drive dari permintaan POST
 $googleDriveUrl = isset($_POST['google_drive_url']) ? $_POST['google_drive_url'] : '';
+$downloadOption = isset($_POST['download_option']) ? $_POST['download_option'] : 'google_drive'; // Default to Google Drive
 
 // Variabel untuk menyimpan pesan error
 $errorMessage = '';
 
 // Fungsi untuk mengirim permintaan ke Aria2 RPC
 function sendAria2RpcRequest($method, $params = array()) {
-    global $aria2RpcUrl, $aria2Username, $aria2Password;
+    global $aria2RpcUrl, $aria2RpcSecretToken;
 
+    // Membuat request JSON-RPC
     $request = array(
         'jsonrpc' => '2.0',
         'id' => '1',
         'method' => $method,
-        'params' => $params
+        'params' => array_merge(["token:$aria2RpcSecretToken"], $params) // Tambahkan token ke params
     );
 
-    $options = array(
-        'http' => array(
-            'header' => "Content-Type: application/json\r\nAuthorization: Basic " . base64_encode($aria2Username . ':' . $aria2Password) . "\r\n",
-            'method' => 'POST',
-            'content' => json_encode($request)
-        )
+    // Debug: Tampilkan URL dan data request
+    // echo "Request URL: $aria2RpcUrl\n";
+    // echo "Request Data: " . json_encode($request) . "\n";
+
+    // Inisialisasi cURL
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $aria2RpcUrl); // Set URL Aria2 RPC
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Return response sebagai string
+    curl_setopt($ch, CURLOPT_POST, true); // Set metode request ke POST
+
+    // Set header
+    $headers = array(
+        'Content-Type: application/json'
     );
 
-    $context = stream_context_create($options);
-    $response = file_get_contents($aria2RpcUrl, false, $context);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($request)); // Set data POST
 
+    // Eksekusi request dan simpan responsenya
+    $response = curl_exec($ch);
+
+    // Cek jika ada error
+    if (curl_errno($ch)) {
+        $errorMessage = 'cURL Error: ' . curl_error($ch);
+        curl_close($ch);
+        return array('error' => $errorMessage);
+    }
+
+    // Tutup koneksi cURL
+    curl_close($ch);
+
+    // Debug: Tampilkan respons dari Aria2 RPC
+    // echo "Response from Aria2: " . $response . "\n";
+  	// echo "Headers: " . json_encode($headers) . "\n";
+
+    // Decode response JSON dan kembalikan sebagai array
     return json_decode($response, true);
 }
 
@@ -39,7 +66,20 @@ function addDownloadToAria2($url, $fileName) {
         array('out' => $fileName)
     );
 
-    return sendAria2RpcRequest('aria2.addUri', $params);
+    $response = sendAria2RpcRequest('aria2.addUri', $params);
+
+    // Cek jika ada error dalam respons
+    if (isset($response['error'])) {
+        return 'Error: ' . json_encode($response['error']); // Konversi array ke string
+    }
+
+    // Cek jika respons mengandung result (berhasil)
+    if (isset($response['result'])) {
+        return $response;
+    }
+
+    // Jika tidak ada result atau error, kembalikan pesan error default
+    return 'Failed to add download. No result or error message from Aria2.';
 }
 
 // Fungsi untuk mendapatkan status unduhan dari Aria2 RPC
@@ -202,9 +242,12 @@ if (!empty($googleDriveUrl)) {
         // Mendapatkan nama file dari URL dengan fields=name
         $fileName = getNameFromUrl($fileNameUrl);
 
-        // Menghasilkan URL download menggunakan Google Drive API dengan alt=media
-       // $downloadUrl = "https://bypass.sachinmirror.eu.org/direct.aspx?id=$fileId"; //
-           $downloadUrl = "https://www.googleapis.com/drive/v3/files/$fileId?alt=media&key=$apiKey";
+        // Menghasilkan URL download berdasarkan pilihan pengguna
+        if ($downloadOption === 'sachin_mirror') {
+            $downloadUrl = "https://bypass.sachinmirror.eu.org/direct.aspx?id=$fileId";
+        } else {
+            $downloadUrl = "https://www.googleapis.com/drive/v3/files/$fileId?alt=media&key=$apiKey";
+        }
 
         if ($downloadUrl === "" || $fileName === null) {
             $errorMessage = 'Error: File not found or invalid Google Drive URL.';
@@ -212,27 +255,24 @@ if (!empty($googleDriveUrl)) {
             // Mengubah nama file jika diperlukan
             $modifiedDownloadUrl = changeFileName($downloadUrl, $fileName);
 
-            // Pengecekan respon status header setelah mengirim permintaan ke Google Drive API
-            $httpStatusCode = http_response_code();
-            if (http_response_code() !== 200) {
-                $errorMessage = 'Error: Failed to fetch file information from Google Drive.';
-            } else {
-                // Menambahkan tautan unduhan ke Aria2 RPC
-                $response = addDownloadToAria2($downloadUrl, $fileName);
+            // Menambahkan tautan unduhan ke Aria2 RPC
+            $response = addDownloadToAria2($downloadUrl, $fileName);
 
-                if (isset($response['result'])) {
-                    $gid = $response['result'];
-                    $downloadStatus = getDownloadStatus($gid);
+            // Cek jika ada error
+            if (is_string($response) && strpos($response, 'Error:') === 0) {
+                $errorMessage = $response;
+            } elseif (is_array($response) && isset($response['result'])) {
+                $gid = $response['result'];
+                $downloadStatus = getDownloadStatus($gid);
 
-                    // Tampilkan status unduhan beserta nama file
-                    if (empty($errorMessage)) {
-                        echo 'Download started. Status: ' . $downloadStatus['result']['status'] . '<br>';
-                        echo 'File Name: ' . $fileName;
-                    }
-                } else {
-                    // Tampilkan pesan kesalahan jika gagal menambahkan unduhan
-                    $errorMessage = 'Failed to add download.';
+                // Tampilkan status unduhan beserta nama file
+                if (empty($errorMessage)) {
+                    echo 'Download started. Status: ' . $downloadStatus['result']['status'] . '<br>';
+                    echo 'File Name: ' . $fileName;
                 }
+            } else {
+                // Tampilkan pesan kesalahan jika gagal menambahkan unduhan
+                $errorMessage = 'Failed to add download. No response from Aria2.';
             }
         }
     }
@@ -266,6 +306,12 @@ if (!empty($googleDriveUrl)) {
             margin-bottom: 10px;
         }
 
+        select {
+            width: 300px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
         button {
             padding: 10px 20px;
             background-color: #2a89ff;
@@ -286,13 +332,21 @@ if (!empty($googleDriveUrl)) {
 
 <body>
     <?php
-    if (!empty($errorMessage)) {
+if (!empty($errorMessage)) {
+    if (is_array($errorMessage)) {
+        echo '<p class="error-message">' . json_encode($errorMessage) . '</p>';
+    } else {
         echo '<p class="error-message">' . $errorMessage . '</p>';
     }
+}
     ?>
     <form method="post" action="">
         <h1>Google Drive Downloader</h1>
         <textarea name="google_drive_url" placeholder="Enter Google Drive URL" rows="10" cols="50" required></textarea><br><br>
+        <select name="download_option">
+            <option value="google_drive">Use Google Drive API</option>
+            <option value="sachin_mirror">Use Sachin Mirror API</option>
+        </select><br><br>
         <button type="submit" value="Download">Download</button>
     </form>
 </body>

@@ -11,5 +11,7 @@
 	// Mengatur username dan password Aria2 RPC
 	$aria2Username = 'your_username';
 	$aria2Password = 'your_password';
+  $aria2RpcSecretToken = "token"; // Ganti dengan token yang Anda gunakan
+
 
 ?>
