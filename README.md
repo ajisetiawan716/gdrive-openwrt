@@ -6,7 +6,7 @@ Repositori ini menyediakan file Php di dalam folder `gdrive` yang berfungsi untu
 
 ## ✅ Fitur
 
-- Download file langsung dari Google Drive
+- Download file langsung dari Google Drive.
 - Menggunakan tool `aria2`.
 - Berjalan di antarmuka yang berbasis web.
 
