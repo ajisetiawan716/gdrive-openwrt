@@ -7,7 +7,7 @@ Repositori ini menyediakan file Php di dalam folder `gdrive` yang berfungsi untu
 ## ✅ Fitur
 
 - Download file langsung dari Google Drive
-- Menggunakan tool aria2.
+- Menggunakan tool `aria2`.
 - Berjalan di antarmuka yang berbasis web.
 
 ---
@@ -60,7 +60,7 @@ Repositori ini menyediakan file Php di dalam folder `gdrive` yang berfungsi untu
 
 ## 🔧 Penggunaan
 
-            Aplikasi dapat diakses melalui antarmuka web.
+Aplikasi dapat diakses melalui antarmuka web.
 
 ```
 http://IP-ADDRESS/gdrive
