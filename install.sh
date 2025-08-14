@@ -8,7 +8,8 @@
 
 
     echo "Menginstall aplikasi..."
-    
+    mkdir /www/gdrive/
+    chmod +x /www/gdrive/
     # Download file-file aplikasi dari GitHub
     wget -q -O /www/gdrive/config.php https://raw.githubusercontent.com/ajisetiawan716/gdrive-openwrt/refs/heads/main/gdrive/config.php
     wget -q -O /www/gdrive/index.php https://raw.githubusercontent.com/ajisetiawan716/gdrive-openwrt/refs/heads/main/gdrive/index.php
